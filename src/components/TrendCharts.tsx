@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { addDays, timeSeries, type Filters, type Grain, type Metrics } from '../lib/data'
 import { fmt, shortDate } from '../lib/format'
 import { useChartTheme } from '../lib/theme'
@@ -48,14 +48,22 @@ export default function TrendCharts({ facts, filters, grain, onGrainChange }: Pr
           <figure key={c.field} className="mini-chart">
             <figcaption>{c.title}</figcaption>
             <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={series} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap={grain === 'day' ? 2 : 12}>
+              <LineChart data={series} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                 {axes(theme, c.axis)}
                 <Tooltip
-                  cursor={{ fill: theme.cursor }}
+                  cursor={{ stroke: theme.axis, strokeDasharray: '3 3' }}
                   content={<ChartTooltip title={tooltipTitle} format={c.format} name={c.title} />}
                 />
-                <Bar dataKey={c.field} fill={theme.series} radius={[4, 4, 0, 0]} maxBarSize={36} isAnimationActive={false} />
-              </BarChart>
+                <Line
+                  dataKey={c.field}
+                  stroke={theme.series}
+                  strokeWidth={2}
+                  dot={grain === 'week' ? { r: 4, fill: theme.series, stroke: theme.surface, strokeWidth: 2 } : false}
+                  activeDot={{ r: 5, fill: theme.series, stroke: theme.surface, strokeWidth: 2 }}
+                  connectNulls
+                  isAnimationActive={false}
+                />
+              </LineChart>
             </ResponsiveContainer>
           </figure>
         ))}
