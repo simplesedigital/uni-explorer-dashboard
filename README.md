@@ -13,6 +13,12 @@ npm run build    # gera dist/ (site estático)
 
 `npm run dev` e `npm run build` rodam antes `npm run data`, que converte os CSVs em `src/data/meta.json`.
 
+## Publicação
+
+Cada push na `main` gera o build e publica no GitHub Pages
+(`.github/workflows/deploy.yml`). Em Settings › Pages, a fonte precisa estar como **GitHub Actions**.
+O endereço segue o nome do repositório: `https://simplesedigital.github.io/<nome-do-repo>/`.
+
 ## Atualizando os dados
 
 1. No Gerenciador de Anúncios, exporte os relatórios **diários** (detalhamento por dia) de
