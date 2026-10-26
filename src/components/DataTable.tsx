@@ -18,7 +18,7 @@ interface Row extends Totals {
   adset: string | null
 }
 
-type SortKey = 'name' | 'spend' | 'impr' | 'clicks' | 'ctr' | 'cpc' | 'cpm' | 'leads' | 'cpl' | 'conv' | 'cpconv'
+type SortKey = 'name' | 'spend' | 'impr' | 'clicks' | 'ctr' | 'cpc' | 'cpm' | 'leads' | 'cpl'
 
 const COLUMNS: { key: SortKey; label: string; format: (v: number | null) => string }[] = [
   { key: 'spend', label: 'Investimento', format: fmt.brl },
@@ -29,8 +29,6 @@ const COLUMNS: { key: SortKey; label: string; format: (v: number | null) => stri
   { key: 'cpm', label: 'CPM', format: fmt.brl },
   { key: 'leads', label: 'Leads', format: fmt.int },
   { key: 'cpl', label: 'Custo/lead', format: fmt.brl },
-  { key: 'conv', label: 'Conversas', format: fmt.int },
-  { key: 'cpconv', label: 'Custo/conversa', format: fmt.brl },
 ]
 
 const TABS: { level: Level; label: string }[] = [
@@ -41,13 +39,16 @@ const TABS: { level: Level; label: string }[] = [
 
 function buildRows(level: Level, f: Filters): Row[] {
   if (level === 'campaign') {
-    // Conversas só existem no nível de conjunto: soma por campanha e junta.
-    const conv = new Map(groupBy(filterAdsets(f), (r) => r.c).map((g) => [g.key, g.conv]))
     const rows = f.adset ? filterAdsets(f) : filterCampaigns(f)
-    return groupBy(rows, (r) => r.c).map((g) => {
-      const t = totals([{ spend: g.spend, impr: g.impr, clicks: g.clicks, leads: g.leads, conv: conv.get(g.key) ?? 0 }])
-      return { ...t, id: g.key, name: g.key, context: null, status: data.status.campaign[g.key], campaign: g.key, adset: null }
-    })
+    return groupBy(rows, (r) => r.c).map((g) => ({
+      ...g,
+      id: g.key,
+      name: g.key,
+      context: null,
+      status: data.status.campaign[g.key],
+      campaign: g.key,
+      adset: null,
+    }))
   }
   if (level === 'adset') {
     return groupBy(filterAdsets(f), (r) => `${r.c}|${r.s}`).map((g) => ({
@@ -93,7 +94,7 @@ export default function DataTable({ filters, onChange }: Props) {
   }, [rows, query, sort])
 
   const total = useMemo(() => {
-    const t = totals(visible.map((r) => ({ spend: r.spend, impr: r.impr, clicks: r.hasClicks ? r.clicks : undefined, leads: r.leads, conv: r.conv })))
+    const t = totals(visible.map((r) => ({ spend: r.spend, impr: r.impr, clicks: r.hasClicks ? r.clicks : undefined, leads: r.leads, msg: r.msg })))
     return t
   }, [visible])
 

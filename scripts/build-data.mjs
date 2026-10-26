@@ -7,7 +7,8 @@ import Papa from 'papaparse'
 const RAW = path.resolve('data/raw/meta')
 const OUT = path.resolve('src/data/meta.json')
 
-// Indicadores de resultado do Meta que contam como lead ou como conversa.
+// Indicadores de resultado do Meta que contam como lead. Conversas por mensagem
+// também contam como lead (objetivo único); `msg` guarda só a parte de mensagens.
 const LEAD_INDICATORS = new Set([
   'actions:lead', // nível de campanha (consolidado pelo Meta)
   'actions:leadgen.other', // formulário instantâneo
@@ -31,14 +32,15 @@ function metrics(r, withClicks) {
   const m = {
     spend: round(num(r['Valor gasto (BRL)'])),
     impr: num(r['Impressões']),
-    leads: LEAD_INDICATORS.has(indicator) ? results : 0,
-    conv: indicator.startsWith(CONVERSATION_PREFIX) ? results : 0,
+    leads: 0,
+    msg: indicator.startsWith(CONVERSATION_PREFIX) ? results : 0,
   }
+  m.leads = (LEAD_INDICATORS.has(indicator) ? results : 0) + m.msg
   if (withClicks) m.clicks = num(r['Cliques no link'])
   return m
 }
 
-const hasActivity = (m) => m.spend > 0 || m.impr > 0 || m.leads > 0 || m.conv > 0
+const hasActivity = (m) => m.spend > 0 || m.impr > 0 || m.leads > 0
 
 // Guarda o status de veiculação mais recente de cada entidade.
 function trackStatus(map, key, date, status) {
@@ -78,6 +80,22 @@ for (const r of read('anuncios.csv')) {
   const m = metrics(r, false)
   if (hasActivity(m)) ads.push({ d, c, s, a, ...m })
 }
+
+// O relatório de campanhas só traz leads de formulário/site; soma as conversas
+// por mensagem vindas dos conjuntos no mesmo dia e campanha.
+const msgByDay = new Map()
+for (const r of adsets) {
+  if (!r.msg) continue
+  const k = `${r.d}|${r.c}`
+  msgByDay.set(k, (msgByDay.get(k) ?? 0) + r.msg)
+}
+for (const r of campaigns) {
+  const msg = msgByDay.get(`${r.d}|${r.c}`) ?? 0
+  r.msg = msg
+  r.leads += msg
+  msgByDay.delete(`${r.d}|${r.c}`)
+}
+if (msgByDay.size) throw new Error(`Conversas sem linha de campanha correspondente: ${[...msgByDay.keys()].join(', ')}`)
 
 const dates = campaigns.map((r) => r.d).sort()
 const toObj = (map) => Object.fromEntries([...map].map(([k, v]) => [k, v.status]))

@@ -29,8 +29,7 @@ export default function CampaignCharts({ filters, onSelectCampaign }: Props) {
     () =>
       groupBy(filterAdsets({ ...filters, adset: null }), (r) => r.s)
         .filter((g) => g.spend > 0)
-        .map((g) => ({ ...g, results: g.leads + g.conv }))
-        .sort((a, b) => b.results - a.results),
+        .sort((a, b) => b.leads - a.leads),
     [filters],
   )
 
@@ -55,12 +54,11 @@ export default function CampaignCharts({ filters, onSelectCampaign }: Props) {
         onSelect={(n) => onSelectCampaign(filters.campaign === n ? null : n)}
       />
       <HBarPanel
-        title="Custo por resultado por conjunto"
-        subtitle="Resultado = lead (form, lp, site) ou conversa (whats)"
+        title="Custo por lead por conjunto"
         items={byAdset.map((g) => ({
           name: g.key,
-          value: g.results > 0 ? g.spend / g.results : null,
-          detail: `${fmt.int(g.results)} resultados · ${fmt.brl(g.spend)}`,
+          value: g.cpl,
+          detail: `${fmt.int(g.leads)} leads · ${fmt.brl(g.spend)}`,
         }))}
         format={fmt.brl}
         selected={filters.adset}

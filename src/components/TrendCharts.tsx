@@ -12,15 +12,15 @@ interface Props {
   onGrainChange: (g: Grain) => void
 }
 
-type Field = 'spend' | 'leads' | 'conv' | 'cpl' | 'ctr' | 'cpc' | 'cpm'
+type Field = 'spend' | 'leads' | 'cpl' | 'ctr' | 'cpc' | 'cpm'
 
 const CHARTS: { field: Field; title: string; kind: 'bar' | 'line'; format: (v: number | null) => string; axis: (v: number) => string }[] = [
   { field: 'spend', title: 'Investimento', kind: 'bar', format: fmt.brl, axis: (v) => fmt.brlCompact(v) },
   { field: 'leads', title: 'Leads', kind: 'bar', format: fmt.int, axis: (v) => fmt.compact(v) },
   { field: 'cpl', title: 'Custo por lead', kind: 'line', format: fmt.brl, axis: (v) => fmt.brlCompact(v) },
-  { field: 'conv', title: 'Conversas no WhatsApp', kind: 'bar', format: fmt.int, axis: (v) => fmt.compact(v) },
   { field: 'ctr', title: 'CTR (link)', kind: 'line', format: fmt.pct, axis: (v) => `${(v * 100).toFixed(1).replace('.', ',')}%` },
   { field: 'cpc', title: 'CPC (link)', kind: 'line', format: fmt.brl, axis: (v) => fmt.brlCompact(v) },
+  { field: 'cpm', title: 'CPM', kind: 'line', format: fmt.brl, axis: (v) => fmt.brlCompact(v) },
 ]
 
 export default function TrendCharts({ facts, filters, grain, onGrainChange }: Props) {
