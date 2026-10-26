@@ -52,7 +52,7 @@ export default function App() {
 
       <footer className="footer">
         Fonte: exportação do Gerenciador de Anúncios do Meta (relatórios diários de campanhas, conjuntos e anúncios).
-        Leads = formulário instantâneo + lead no site/landing page. Conversas = conversas iniciadas no WhatsApp.
+        Leads = formulário instantâneo + lead no site/landing page + conversas iniciadas por mensagem (WhatsApp).
       </footer>
     </div>
   )

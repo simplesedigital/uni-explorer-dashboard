@@ -4,8 +4,10 @@ export interface Metrics {
   spend: number
   impr: number
   clicks?: number
+  /** Leads totais: formulário + site/LP + conversas por mensagem. */
   leads: number
-  conv: number
+  /** Parte dos leads que veio de conversas por mensagem. */
+  msg: number
 }
 export interface CampaignRow extends Metrics { d: string; c: string }
 export interface AdsetRow extends Metrics { d: string; c: string; s: string }
@@ -35,29 +37,27 @@ export interface Totals extends Required<Metrics> {
   cpc: number | null
   cpm: number | null
   cpl: number | null
-  cpconv: number | null
 }
 
 const div = (a: number, b: number) => (b > 0 ? a / b : null)
 
 export function totals(rows: Metrics[]): Totals {
-  let spend = 0, impr = 0, clicks = 0, leads = 0, conv = 0
+  let spend = 0, impr = 0, clicks = 0, leads = 0, msg = 0
   let hasClicks = rows.length > 0
   for (const r of rows) {
     spend += r.spend
     impr += r.impr
     leads += r.leads
-    conv += r.conv
+    msg += r.msg
     if (r.clicks === undefined) hasClicks = false
     else clicks += r.clicks
   }
   return {
-    spend, impr, clicks, leads, conv, hasClicks,
+    spend, impr, clicks, leads, msg, hasClicks,
     ctr: hasClicks ? div(clicks, impr) : null,
     cpc: hasClicks ? div(spend, clicks) : null,
     cpm: div(spend * 1000, impr),
     cpl: div(spend, leads),
-    cpconv: div(spend, conv),
   }
 }
 
@@ -76,30 +76,13 @@ export function filterAds(f: Filters) {
 }
 
 /**
- * Linhas diárias que alimentam KPIs e gráficos.
+ * Linhas que alimentam KPIs e gráficos.
  *
- * Sem filtro de conjunto, investimento/cliques/leads vêm do relatório de campanhas,
- * que é o número consolidado do Meta (bate com o Gerenciador). Com filtro de conjunto,
- * vêm do relatório de conjuntos. Conversas de WhatsApp só existem no nível de conjunto.
+ * Sem filtro de conjunto, vêm do relatório de campanhas (número consolidado do Meta,
+ * já somado às conversas por mensagem). Com filtro de conjunto, do relatório de conjuntos.
  */
 export function dailyFacts(f: Filters): (Metrics & { d: string })[] {
-  const adsets = filterAdsets(f)
-  const base: (Metrics & { d: string })[] = f.adset ? adsets : filterCampaigns(f)
-  const byDay = new Map<string, Metrics & { d: string }>()
-  for (const r of base) {
-    const cur = byDay.get(r.d) ?? { d: r.d, spend: 0, impr: 0, clicks: 0, leads: 0, conv: 0 }
-    cur.spend += r.spend
-    cur.impr += r.impr
-    cur.clicks = (cur.clicks ?? 0) + (r.clicks ?? 0)
-    cur.leads += r.leads
-    byDay.set(r.d, cur)
-  }
-  for (const r of adsets) {
-    const cur = byDay.get(r.d) ?? { d: r.d, spend: 0, impr: 0, clicks: 0, leads: 0, conv: 0 }
-    cur.conv += r.conv
-    byDay.set(r.d, cur)
-  }
-  return [...byDay.values()].sort((a, b) => a.d.localeCompare(b.d))
+  return f.adset ? filterAdsets(f) : filterCampaigns(f)
 }
 
 // ---- datas ----
@@ -141,7 +124,6 @@ export interface SeriesPoint {
   label: string
   spend: number
   leads: number
-  conv: number
   cpl: number | null
   ctr: number | null
   cpc: number | null
@@ -164,7 +146,6 @@ export function timeSeries(rows: (Metrics & { d: string })[], grain: Grain, f: F
       label: grain === 'day' ? key : first,
       spend: t.spend,
       leads: t.leads,
-      conv: t.conv,
       cpl: t.cpl,
       ctr: rs.length ? t.ctr : null,
       cpc: t.cpc,

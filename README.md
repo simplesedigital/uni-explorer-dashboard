@@ -32,13 +32,12 @@ Para incluir CTR e CPC no nível de anúncio, adicione a coluna "Cliques no link
 
 | Métrica | Como é calculada |
 |---|---|
-| Leads | Resultados com indicador `lead` (campanha), `leadgen.other` (formulário) ou `fb_pixel_lead` (site/LP) |
-| Conversas no WhatsApp | Resultados `messaging_conversation_started_7d` (só existem no nível de conjunto) |
+| Leads | Objetivo único: `lead` (campanha), `leadgen.other` (formulário), `fb_pixel_lead` (site/LP) **e** `messaging_conversation_started_7d` (conversas por mensagem). No nível de campanha, as conversas vêm somadas dos conjuntos |
 | CTR / CPC | Baseados em **cliques no link** |
 | Comparação | Período anterior de mesma duração; aparece quando há dados para ele |
 
 Sem filtro de conjunto, investimento, cliques e leads vêm do relatório de campanhas (o número
-consolidado do Meta). Com filtro de conjunto, vêm do relatório de conjuntos.
+consolidado do Meta, mais as conversas por mensagem). Com filtro de conjunto, vêm do relatório de conjuntos.
 
 ## Stack
 
